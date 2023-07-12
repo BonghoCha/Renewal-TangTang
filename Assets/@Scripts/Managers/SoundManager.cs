@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening.Core.Easing;
@@ -23,7 +24,7 @@ public class SoundManager : MonoBehaviour
 
         #region ## Getter ##
 
-        public ClipType GetType()
+        public ClipType GetClipType()
         {
             return this.clipType;
         }
@@ -66,7 +67,7 @@ public class SoundManager : MonoBehaviour
                 _instance = go.AddComponent<SoundManager>();
                 DontDestroyOnLoad(_instance);
             }
-            
+
             return _instance;
         }
     }
@@ -76,15 +77,29 @@ public class SoundManager : MonoBehaviour
 
     private Dictionary<string, AudioClipEx> _clipDic = new Dictionary<string, AudioClipEx>();
 
+    private void Awake()
+    {
+        if (_instance == null)
+        {
+            _instance = this;
+            DontDestroyOnLoad(this.gameObject);
+        }
+        else
+        {
+            Destroy(this.gameObject);
+        }
+    }
+
     public void Play(string clipName)
     {
         if (_clipDic.TryGetValue(clipName, out var clip))
         {
-            var clipType = clip.GetType();
+            var clipType = clip.GetClipType();
             switch (clipType)
             {
                 case ClipType.BGM:
                 {
+                    Debug.Log(clip);
                     Play(_BGM, clip.GetClip());
                     break;
                 }
@@ -113,7 +128,29 @@ public class SoundManager : MonoBehaviour
         }
         else
         {
-            Debug.Log("[SoundManager] not found the clip !!");
+            // TODO : 리소스 매니저로 로드하는 방식 추가 필요
+            var loadedClip = Resources.Load($"Sounds/{clipName}") as AudioClip;
+            
+            Debug.Log(loadedClip);
+            if (loadedClip != null)
+            {
+                var clipType = ClipType.BGM;
+                if (clipName.Contains("BGM"))
+                {
+                    clipType = ClipType.BGM;
+                }
+                else
+                {
+                    clipType = ClipType.Effect;
+                }
+                _clipDic.Add(clipName, new AudioClipEx(clipType, clipName, loadedClip));
+                
+                Play(clipName);
+            }
+            else
+            {
+                Debug.Log("[SoundManager] not found the clip !!");    
+            }
         }
     }
 
