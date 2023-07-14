@@ -1,29 +1,14 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
-public class ResourceManager : MonoBehaviour
+public class ResourceManager
 {
-    Func<ResourceManager> a => () =>
+    public void LoadAsync<T>(string key, Action onCallback = null) where T : MonoBehaviour
     {
-        Debug.Log("체크");
-        return FindObjectOfType<ResourceManager>();
-    };
-
-    // Start is called before the first frame update
-    void Start()
-    {
-    }
-
-    [Tooltip("test")]
-    public void Test()
-    {
-        Debug.Log(a());
-    }
-    // Update is called once per frame
-    void Update()
-    {
-        
+        var a = Addressables.LoadAssetAsync<T>(key);
+        a.Completed += (result) =>
+        {
+        };
     }
 }
